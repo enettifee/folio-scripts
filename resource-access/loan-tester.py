@@ -27,7 +27,7 @@ snapshot2Environment = "https://folio-snapshot-2-okapi.dev.folio.org"
 
 # tenant names
 snapshotTenant = "diku"
-snapshot2Tenant = 'diku'
+snapshot2Tenant = "diku"
 
 # headers for use with forming API calls
 
@@ -64,7 +64,7 @@ policyNameApis = {'loanPolicyId': '/loan-policy-storage/loan-policies/',
 ## Again, if you are tweaking for another environment, you need to make appropriate
 ## updates here.
 
-environment = input("What server do you want to test on? (snapshot, snapshot2")
+environment = input("What server do you want to test on? (snapshot, snapshot2)  ")
 
 if environment == 'snapshot':
     testServer = snapshotEnvironment
