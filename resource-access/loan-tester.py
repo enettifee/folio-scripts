@@ -4,8 +4,12 @@
 ## It will be of most use to schools that are setting up their rules and want to run their scenarios 
 ## and see what would happen.
 ##
-## A known issue is a lack of support for overdue policies and lost item policies - there was
-## a needed permissions update to resolve a bug but it was only backported to Lotus (https://issues.folio.org/browse/CIRC-1453).
+## Known issues:
+## 1. Haven't yet added overdue or lost item policies to the API calls - there was a known issue with 
+## permissions and the associated APIs, but it was only backported to Lotus (CIRC-1453) and the environment I built this
+## on was still on Kiwi.
+## 2. Better output handling - right now, it just dumps the rows into a text file, and you have to get it into
+## Excel and use text to columns to get it to a reviewable format.
 ## 
 
 import requests
@@ -49,11 +53,11 @@ apiValues = {'loanPolicyId': '/circulation/rules/loan-policy?',
 policyNameApis = {'loanPolicyId': '/loan-policy-storage/loan-policies/',
                   'noticePolicyId': '/patron-notice-policy-storage/patron-notice-policies/', 'requestPolicyId': '/request-policy-storage/request-policies/'}
 
-# there's a permission error here - let's just remove these for now and come back to it after I figure that out.
+# there's a permission error here in Kiwi - let's just remove these for now and come back to it after I figure that out.
 #
-#             '/circulation/rules/overdue-fine-policy?', '/circulation/rules/lost-item-policy?'}
+# '/circulation/rules/overdue-fine-policy?', '/circulation/rules/lost-item-policy?'}
 
-##
+
 ## Now you can start asking for input from the person running the script
 ## They need to specify the name of the server they want to test on
 ##
