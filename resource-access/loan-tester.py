@@ -151,10 +151,7 @@ for count, row in enumerate(testLoanScenarios):
     
     # first thing is to pull the UUIDs; you'll need these to look up the friendly names, and to
     # correctly form the API call to see what policy comes back
-    patron_type_id = row["patron_type_id"]
-    loan_type_id = row["loan_type_id"]
-    item_type_id = row["item_type_id"]
-    location_id = row["location_id"]
+    patron_type_id, loan_type_id, item_type_id, location_id = row["patron_type_id"], row["loan_type_id"],  row["item_type_id"], row["location_id"]
 
     # pull patron_type_id friendly name
     for i in patronGroupsJson['usergroups']:
