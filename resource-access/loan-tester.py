@@ -8,13 +8,13 @@
 ## 1. Haven't yet added overdue or lost item policies to the API calls - there was a known issue with 
 ## permissions and the associated APIs, but it was only backported to Lotus (CIRC-1453) and the environment I built this
 ## on was still on Kiwi.
-## 2. Better output handling - right now, it just dumps the rows into a text file, and you have to get it into
-## Excel and use text to columns to get it to a reviewable format.
 ## 
 
 import requests
 import csv
 import sys
+from datetime import datetime
+
 
 ## Set up variables for use in the script
 ## If you are repurposing this for another institution, you'll want to add the 
@@ -78,6 +78,9 @@ else:
     print("Server environment not recognized.")
     sys.exit()
 
+# Print start time for script - 
+startTime = datetime.now()
+print("Script starting at: %s" % startTime)
 
 # fetch settings files to query in the script; makes things faster
 
@@ -146,8 +149,8 @@ friendlyResults = {}
 testLoanScenarios = csv.DictReader(initialFile, dialect='excel')
 
 for count, row in enumerate(testLoanScenarios):
-    # provides a simple counter to know the script is still running
-    print(count)
+    # provides a simple counter and output to know the script is still running
+    print(count, row)
     
     # first thing is to pull the UUIDs; you'll need these to look up the friendly names, and to
     # correctly form the API call to see what policy comes back
@@ -207,17 +210,19 @@ for count, row in enumerate(testLoanScenarios):
         #     for i in lostItemPoliciesJson['lostItemFeesPolicies']:
         #         if i['id'] == postEachVar['lostItemFeePolicyId']:
         #             friendlyResults['lostItemPolicy'] = i['name']
-                    
         
-
-    # write finalized row to a text document - this needs to be better, but at a minimum you can
-    # take the output and use Excel text-to-columns to make it reviewable
-
-    with open('test-string.txt', 'a') as test_string_file:
-        test_string_file.write(str(friendlyResults.values()) + '\n')
+        
+    # now write the results of the dictionary to a csv file
+    # the file will be created with the name friendlyOutput + a date time string
     
+    with open("friendlyOutput-%s.csv" % startTime.strftime("%d-%m-%Y-%H%M%S"), 'a', newline='') as output_file:
+         test_file = csv.writer(output_file)
+         test_file.writerow(friendlyResults.values())
 
-
+# when the tester is finally done, give some basic time information so you 
+# know how long it took        
+endTime = datetime.now()
+print("Script started at %s and ended at %s" % (startTime, endTime))
 
 # close the initial file of scenarios
 initialFile.close()
