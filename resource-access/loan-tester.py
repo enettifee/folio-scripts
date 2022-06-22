@@ -1,14 +1,8 @@
-## 6-15-2022 
-## This script is a very basic tool to allow you to provide FOLIO with a sequence of settings UUIDs 
+## This is a very basic tool to allow you to provide FOLIO with a CSV file of settings UUIDs 
 ## which FOLIO then sends back and tells you what circulation policies would be applied. 
+##
 ## It will be of most use to schools that are setting up their rules and want to run their scenarios 
 ## and see what would happen.
-##
-## Known issues:
-## 1. Haven't yet added overdue or lost item policies to the API calls - there was a known issue with 
-## permissions and the associated APIs, but it was only backported to Lotus (CIRC-1453) and the environment I built this
-## on was still on Kiwi.
-## 
 
 import requests
 import csv
