@@ -3,6 +3,17 @@
 ##
 ## It will be of most use to schools that are setting up their rules and want to run their scenarios 
 ## and see what would happen.
+##
+## Your input file should be in CSV format like so:
+##
+## patron_type_id,loan_type_id,item_type_id,location_id
+## patrontypeUUID,loantypeUUID,itemtypeUUID,locationUUID
+## ...
+## ...
+## ...
+##
+## "item_type" in this script is referring to what appears as "material type" in the UI - the API calls it
+## item type, I think that is tech debt from very early project decisions.
 
 import requests
 import csv
