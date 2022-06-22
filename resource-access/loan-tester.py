@@ -1,8 +1,8 @@
 ## This is a very basic tool to allow you to provide FOLIO with a CSV file of settings UUIDs 
 ## which FOLIO then sends back and tells you what circulation policies would be applied. 
 ##
-## It will be of most use to schools that are setting up their rules and want to run their scenarios 
-## and see what would happen.
+## It should function in FOLIO for the Lotus release and later - in Kiwi, there is a permission
+## issue that prevents the overdue and lost item policies from being retrieved.
 ##
 ## Your input file should be in CSV format like so:
 ##
@@ -14,6 +14,16 @@
 ##
 ## "item_type" in this script is referring to what appears as "material type" in the UI - the API calls it
 ## item type, I think that is tech debt from very early project decisions.
+##
+## You must run this as a user who has the following specific permissions:
+##
+## circulation.rules.loan-policy.get
+## circulation.rules.overdue-fine-policy.get
+## circulation.rules.lost-item-policy.get
+## circulation.rules.request-policy.get
+## circulation.rules.notice-policy.get
+##
+## These permissions are hidden by default, so you will need administrator access to assign these permissions to a user.
 
 import requests
 import csv
