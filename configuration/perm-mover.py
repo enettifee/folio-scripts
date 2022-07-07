@@ -2,6 +2,8 @@
 ## 
 ## this is a simple script that lets you move library-created permission sets
 ## from one environment to another
+##
+## the output is a text file that saves the name of the set and the response from the final API call (either POST or PUT)
 
 import requests
 import json
