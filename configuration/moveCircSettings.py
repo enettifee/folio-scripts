@@ -293,5 +293,5 @@ if moveCircRules == 'Y':
     
     rulesAsTextPayload = '{ "rulesAsText" : ' + rulesAsTextJson  + '}' # construct the rules payload by adding the attribute name
     
-    print("Sending circulation rules")
+    print("Sending circulation rules file")
     rulesPut = requests.request("PUT", urlPut, headers=postHeaders, data=rulesAsTextPayload)
