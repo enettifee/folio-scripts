@@ -29,68 +29,57 @@ import requests
 import csv
 import sys
 from datetime import datetime
+import folioFunctions
+import configparser
 
-## Set up variables for use in the script
-## If you are repurposing this for another institution, you'll want to add the 
-## appropriate okapi URLs, tenant names, tokens, etc. and make sure
-## that the appropriate points throughout the script have your variables.
+"""
+Use config parser to open config-template.ini and read in
+applicable configuration values to use with all of the requesting calls.
+"""
 
-# okapi environments that can be used
-snapshotEnvironment = "https://folio-snapshot-okapi.dev.folio.org"
-snapshot2Environment = "https://folio-snapshot-2-okapi.dev.folio.org"
+envConfig = configparser.ConfigParser()
+envConfig.read('config-template.ini')
 
-# tenant names
-snapshotTenant = "diku"
-snapshot2Tenant = "diku"
+# call function to ask for environment to move from and to:
+moveFromEnv, moveToEnv = ff.askenvironment()
 
-# headers for use with forming API calls
+moveUrl = envConfig[moveFromEnv]['okapi_url']
+moveToUrl = envConfig[moveToEnv]['okapi_url']
 
-snapshotPostHeaders = {
-    'x-okapi-tenant': snapshotTenant,
-    'x-okapi-token': snapshotToken,
+fetchHeaders = {
+    'x-okapi-tenant': envConfig[moveFromEnv]['tenant_id'],
+    'x-okapi-token': envConfig[moveFromEnv]['password']
+}
+postHeaders = {
+    'x-okapi-tenant': envConfig[moveToEnv]['tenant_id'],
+    'x-okapi-token': envConfig[moveToEnv]['password'],
     'Content-Type': 'application/json'
 }
-snapshot2PostHeaders = {
-    'x-okapi-tenant': snapshot2Tenant,
-    'x-okapi-token': snapshot2Token,
-    'Content-Type': 'application/json'
-}
 
-## Now you can start asking for input from the person running the script
-## They need to specify the name of the server they want to test on
-##
-## Again, if you are tweaking for another environment, you need to make appropriate
-## updates here.
+"""
+next, we call a function to ask which server we are testing on
+(this only runs on one FOLIO server)
+"""
 
-environment = input("What server do you want to test on? (snapshot, snapshot2)  ")
+testServer = folioFunctions.asksingleenvironment()
 
-if environment == 'snapshot':
-    testServer = snapshotEnvironment
-    postHeaders = snapshotPostHeaders
-    snapshotToken = input("provide the token for snapshot ")
-elif environment == 'snapshot2':
-    testServer = snapshot2Environment
-    postHeaders = snapshot2PostHeaders
-    snapshotToken = input("provide the token for snapshot 2 ")
-else:
-    print("Server environment not recognized.")
-    sys.exit()
+"""
+capture the start time of the script and print it on screen;
+this is really helpful for being able to monitor what is going 
+on
+"""
 
 # Print start time for script - 
 startTime = datetime.now()
 print("Script starting at: %s" % startTime)
 
 # fetch settings files to query in the script; makes things faster
-
 # fetch patron groups
-patronGroupsUrl = '{}{}'.format(testServer, '/groups?limit=1000')
-patronGroupsRequest = requests.get(patronGroupsUrl, headers=postHeaders)
-patronGroupsJson = patronGroupsRequest.json()
+
+patronGroupsJson = folioFunctions.fetchpatrongroups(testServer, fetchHeaders)
 
 # fetch loan types
-loanTypesUrl = '{}{}'.format(testServer, '/loan-types?limit=1000')
-loanTypesRequest = requests.get(loanTypesUrl, headers=postHeaders)
-loanTypesJson = loanTypesRequest.json()
+loanTypesJson = folioFunctions.fetchloantypes(testServer, fetchHeaders)
 
 # fetch material types
 materialTypesUrl = '{}{}'.format(testServer, '/material-types?limit=1000')

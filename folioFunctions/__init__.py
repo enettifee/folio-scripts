@@ -59,6 +59,27 @@ def askenvironment():
         sys.exit()
     return moveFromEnv, moveToEnv
 
+"""
+Some scripts only use one server - this function is used for those.
+"""
+
+def asksingleenvironment():
+    whichServer = input("Which environment are we working on? (dukeDev, dukeTest, snapshot) ")
+    if whichServer == 'dukeDev':
+        testServer = 'dukeDev'
+    elif whichServer == 'dukeTest':
+        testServer = 'dukeTest'
+    elif whichServer == 'snapshot':
+        testServer = 'snapshot'
+    else:
+        print("unrecognized server environment")
+        sys.exit()
+    return testServer
+
+
+
+
+
 
 """
 Next set of definitions - fetching settings files and returning the JSON.
