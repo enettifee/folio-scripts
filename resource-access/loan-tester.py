@@ -29,7 +29,7 @@ import requests
 import csv
 import sys
 from datetime import datetime
-import folioFunctions
+import folioFunctions as ff
 import configparser
 
 """
@@ -61,7 +61,7 @@ next, we call a function to ask which server we are testing on
 (this only runs on one FOLIO server)
 """
 
-testServer = folioFunctions.asksingleenvironment()
+testServer = ff.asksingleenvironment()
 
 """
 capture the start time of the script and print it on screen;
@@ -76,64 +76,67 @@ print("Script starting at: %s" % startTime)
 # fetch settings files to query in the script; makes things faster
 # fetch patron groups
 
-patronGroupsJson = folioFunctions.fetchpatrongroups(testServer, fetchHeaders)
+patronGroupsJson = ff.fetchpatrongroups(testServer, fetchHeaders)
 
 # fetch loan types
-loanTypesJson = folioFunctions.fetchloantypes(testServer, fetchHeaders)
+loanTypesJson = ff.fetchloantypes(testServer, fetchHeaders)
 
 # fetch material types
-materialTypesUrl = '{}{}'.format(testServer, '/material-types?limit=1000')
-materialTypesRequest = requests.get(materialTypesUrl, headers=postHeaders)
-materialTypesJson = materialTypesRequest.json()
+materialTypesJson = ff.fetchmaterialtypes(testServer, fetchHeaders)
 
 # fetch locations
-locationsUrl = '{}{}'.format(testServer, '/locations?limit=1500')
-locationsRequest = requests.get(locationsUrl, headers=postHeaders)
-locationsJson = locationsRequest.json()
+locationsJson = ff.fetchlocations(testServer, fetchHeaders)
+
+# fetch libraries
+librariesJson = ff.fetchlibraries(testServer, fetchHeaders)
 
 # fetch loan policies
-loanPoliciesUrl = '{}{}'.format(testServer, '/loan-policy-storage/loan-policies?limit=500')
-loanPoliciesRequest = requests.get(loanPoliciesUrl, headers=postHeaders)
-loanPoliciesJson = loanPoliciesRequest.json()
+loanPoliciesJson = ff.fetchloanpolicies(testServer, fetchHeaders)
 
 # fetch notice policies
-noticePoliciesUrl = '{}{}'.format(testServer, '/patron-notice-policy-storage/patron-notice-policies?limit=100')
-noticePoliciesRequest = requests.get(noticePoliciesUrl, headers=postHeaders)
-noticePoliciesJson = noticePoliciesRequest.json()
+noticePoliciesJson = ff.fetchnoticepolicies(testServer, fetchHeaders)
 
 # fetch request policies
-requestPoliciesUrl = '{}{}'.format(testServer, '/request-policy-storage/request-policies?limit=50')
-requestPoliciesRequest = requests.get(requestPoliciesUrl, headers=postHeaders)
-requestPoliciesJson = requestPoliciesRequest.json()
+requestPoliciesJson = ff.fetchrequestpolicies(testServer, fetchHeaders)
 
 # fetch overdue policies
-overduePoliciesUrl = '{}{}'.format(testServer, '/overdue-fines-policies?limit=100')
-overduePoliciesRequest = requests.get(overduePoliciesUrl, headers=postHeaders)
-overduePoliciesJson = overduePoliciesRequest.json()
+overduePoliciesJson = ff.fetchoverduepolicies(testServer, fetchHeaders)
 
 # fetch lost item policies
-lostItemPoliciesUrl = '{}{}'.format(testServer, '/lost-item-fees-policies?limit=100')
-lostItemPoliciesRequest = requests.get(lostItemPoliciesUrl, headers=postHeaders)
-lostItemPoliciesJson = lostItemPoliciesRequest.json()
+lostItemPoliciesJson = ff.fetchlostpolicies(testServer, fetchHeaders)
 
-# open the file with test information - assumes name of file is loan_tester.csv but that's easy to change
-# 
-# encoding = 'utf-8-sig' tells Python to compensate for Excel encoding
-# first row should have four values - patron_type_id,	item_type_id,	loan_type_id,	location_id
-# then you put in the values for each loan scenario as a row in the file
-#
-# values are specified in UUIDs, but output will be in friendly name.
-# the API calls the material type id the "item type id" - tech debt artifact from early FOLIO, I think
+"""
+Open the file with your loan testing information (name 'loan_tester.csv' by default) and
+then load it into a python CSV Dictionary object called "testLoanScenarios."
+
+The encoding = 'utf-8-sig' tells Python to compensate for Excel encoding when parsing
+the CSV.
+
+The first row the CSV file should have four header values, in this order:
+patron_type_id,	item_type_id, loan_type_id,	location_id
+
+Then you add a row for each scenario you want to test.
+
+Specify the values in the spreadsheet as excel UUIDs; the output for review will
+be in the human-readable setting name.
+
+Also note that the API calls the material type id the "item type id" - I think that is
+tech debt / architecture decisions from early FOLIO that were changed later on.
+
+"""
 
 initialFile = open('loan_tester.csv', newline='', encoding='utf-8-sig')
+testLoanScenarios = csv.DictReader(initialFile, dialect='excel')
 
-# create a python dictionary to store the results with friendly names that you want to put into a file
+
+"""
+Next, you create a Python dictionary called "friendlyResults" where the test loop code
+will store the results - this then gets outputted into the CSV file that is the output of
+the script.
+"""
+
 friendlyResults = {}
 
-# turn your file of patron/loan/material type/location into python dictionary that can be
-# used to query the APIs
-
-testLoanScenarios = csv.DictReader(initialFile, dialect='excel')
 
 for count, row in enumerate(testLoanScenarios):
     # provides a simple counter and output to know the script is still running
