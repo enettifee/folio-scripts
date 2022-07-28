@@ -1,13 +1,17 @@
 ## This is a very basic tool to allow you to provide FOLIO with a CSV file of settings UUIDs 
-## which FOLIO then sends back and tells you what circulation policies would be applied. 
+## which FOLIO then sends back and tells you what circulation policies would be applied.
+##
+## This script also includes "item status" as part of the input and output, even though
+## item status is not used in circulation rules. If you don't have access to item status
+## to include in your input file, then you might want to remove that part (see lines 163 and 210).
 ##
 ## It should function in FOLIO for the Lotus release and later - in Kiwi, there is a permission
 ## issue that prevents the overdue and lost item policies from being retrieved.
 ##
 ## Your input file should be in CSV format like so:
 ##
-## patron_type_id,loan_type_id,item_type_id,location_id
-## patrontypeUUID,loantypeUUID,itemtypeUUID,locationUUID
+## patron_type_id,loan_type_id,item_type_id,location_id, status_name
+## patrontypeUUID,loantypeUUID,itemtypeUUID,locationUUID, item status
 ## ...
 ## ...
 ## ...
@@ -40,28 +44,31 @@ applicable configuration values to use with all of the requesting calls.
 envConfig = configparser.ConfigParser()
 envConfig.read('config-template.ini')
 
-# call function to ask for environment to move from and to:
-moveFromEnv, moveToEnv = ff.askenvironment()
-
-moveUrl = envConfig[moveFromEnv]['okapi_url']
-moveToUrl = envConfig[moveToEnv]['okapi_url']
-
-fetchHeaders = {
-    'x-okapi-tenant': envConfig[moveFromEnv]['tenant_id'],
-    'x-okapi-token': envConfig[moveFromEnv]['password']
-}
-postHeaders = {
-    'x-okapi-tenant': envConfig[moveToEnv]['tenant_id'],
-    'x-okapi-token': envConfig[moveToEnv]['password'],
-    'Content-Type': 'application/json'
-}
 
 """
 next, we call a function to ask which server we are testing on
 (this only runs on one FOLIO server)
 """
 
-testServer = ff.asksingleenvironment()
+whichServer = ff.asksingleenvironment()
+
+"""
+We know which server, so pull the relevant values from the config INI file.
+"""
+
+testServer = envConfig[whichServer]['okapi_url']
+
+fetchHeaders = {
+    'x-okapi-tenant': envConfig[whichServer]['tenant_id'],
+    'x-okapi-token': envConfig[whichServer]['password']
+}
+postHeaders = {
+    'x-okapi-tenant': envConfig[whichServer]['tenant_id'],
+    'x-okapi-token': envConfig[whichServer]['password'],
+    'Content-Type': 'application/json'
+}
+
+
 
 """
 capture the start time of the script and print it on screen;
@@ -153,7 +160,7 @@ for count, row in enumerate(testLoanScenarios):
     
     # first thing is to pull the row from testLoanScenarios, and assign the UUID values to
     # the associated variables.
-    patron_type_id, loan_type_id, item_type_id, location_id = row["patron_type_id"], row["loan_type_id"],  row["item_type_id"], row["location_id"]
+    patron_type_id, loan_type_id, item_type_id, location_id, item_status_name = row["patron_type_id"], row["loan_type_id"],  row["item_type_id"], row["location_id"], row["status_name"]
 
     # then, you're going to take each value, pull the human readable name, and put
     # it back in the row in place of the UUID values.
@@ -198,6 +205,9 @@ for count, row in enumerate(testLoanScenarios):
         friendlyResults['libraryName'], friendlyResults['location'] = "Library not found", "Location not found"
     if not 'location' in friendlyResults:
         friendlyResults['location'] = "Location not found"
+
+    # you're also going to add the item status, which is in the file already, as a friendly name.
+    friendlyResults['status_name'] = item_status_name
 
 
     # now, you'll use the UUID values to query the APIs, get the results back, and then form
