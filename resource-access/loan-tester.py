@@ -66,7 +66,11 @@ testServer = ff.asksingleenvironment()
 """
 capture the start time of the script and print it on screen;
 this is really helpful for being able to monitor what is going 
-on
+on. 
+
+We will also use the start time as part of the filename for the
+output file; this can be helpful when running this script a lot
+in a short amount of time.
 """
 
 # Print start time for script - 
@@ -137,14 +141,22 @@ the script.
 
 friendlyResults = {}
 
+"""
+finally, here comes the actual loop to run through and test your loan scenarios.
+
+"""
+
 
 for count, row in enumerate(testLoanScenarios):
-    # provides a simple counter and output to know the script is still running
+    # provides a simple counter and output on the screen to know the script is still running
     print(count, row)
     
-    # first thing is to pull the UUIDs; you'll need these to look up the friendly names, and to
-    # correctly form the API call to see what policy comes back
+    # first thing is to pull the row from testLoanScenarios, and assign the UUID values to
+    # the associated variables.
     patron_type_id, loan_type_id, item_type_id, location_id = row["patron_type_id"], row["loan_type_id"],  row["item_type_id"], row["location_id"]
+
+    # then, you're going to take each value, pull the human readable name, and put
+    # it back in the row in place of the UUID values.
 
     # pull patron_type_id friendly name
     for i in patronGroupsJson['usergroups']:
@@ -169,7 +181,8 @@ for count, row in enumerate(testLoanScenarios):
     if not 'material_type' in friendlyResults:
         friendlyResults['material_type'] = "Material type not found"
 
-    # pull location friendly name - using location code since a lot of our location names have commas in them
+    # pull location friendly name - this is using location code since a
+    # lot of Duke's location names have commas in them
     # which makes working with CSV a little too messy
     #
     # also pulling library friendly name so that it can be used in sorting/reviewing results in the
@@ -190,7 +203,7 @@ for count, row in enumerate(testLoanScenarios):
     # now, you'll use the UUID values to query the APIs, get the results back, and then form
     # the full row in friendlyResults with the friendly names
     
-    # first, let's make the URLs
+    # first, let's create the URLs
     
     urlLoanPolicy = '{}{}{}{}{}{}{}{}{}{}'.format(testServer, '/circulation/rules/loan-policy?' , 'loan_type_id=', loan_type_id, '&item_type_id=', item_type_id, '&patron_type_id=', patron_type_id, '&location_id=', location_id)
     urlRequestPolicy = '{}{}{}{}{}{}{}{}{}{}'.format(testServer, '/circulation/rules/request-policy?' , 'loan_type_id=', loan_type_id, '&item_type_id=', item_type_id, '&patron_type_id=', patron_type_id, '&location_id=', location_id)
@@ -198,10 +211,11 @@ for count, row in enumerate(testLoanScenarios):
     urlOverduePolicy = '{}{}{}{}{}{}{}{}{}{}'.format(testServer, '/circulation/rules/overdue-fine-policy?' , 'loan_type_id=', loan_type_id, '&item_type_id=', item_type_id, '&patron_type_id=', patron_type_id, '&location_id=', location_id)
     urlLostItemPolicy = '{}{}{}{}{}{}{}{}{}{}'.format(testServer, '/circulation/rules/lost-item-policy?' , 'loan_type_id=', loan_type_id, '&item_type_id=', item_type_id, '&patron_type_id=', patron_type_id, '&location_id=', location_id)
 
-    # now, check all of the policies.
+    # now, send a GET request to each URL - the return value will be the UUID for the circulation policy
+    # that would be applied.
     # 
-    # you could make one giant loop for this, but I found that it seemed like I got a bit of a performance improvement by 
-    # doing individual loops through the smaller chunks of data / discrete sections
+    # You could make one giant loop for this, but I found that it seemed like I got a bit of a performance improvement by
+    # doing individual loops through the smaller chunks of data / discrete sections.
 
     postLoanPolicies = requests.get(urlLoanPolicy, headers=postHeaders)
     postLoanPoliciesJson = postLoanPolicies.json()
@@ -232,6 +246,8 @@ for count, row in enumerate(testLoanScenarios):
     for i in lostItemPoliciesJson['lostItemFeePolicies']:
         if i['id'] == postLostItemPoliciesJson['lostItemPolicyId']:
             friendlyResults['lostItemPolicy'] = i['name']
+
+    # Finally, take the results and add them to the row in the file where we're capturing the results.
 
     with open("friendlyOutput-%s.csv" % startTime.strftime("%d-%m-%Y-%H%M%S"), 'a', newline='') as output_file:
          test_file = csv.writer(output_file)
