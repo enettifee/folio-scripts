@@ -34,17 +34,16 @@ error_phrases = ["errors", "ERROR", "duplicate key"]
 # we should provide both GET and POST headers, but it doesn't hurt anything to just use
 # this set for both.
 
-snapshotPostHeaders={
+snapshotPostHeaders = {
     'x-okapi-tenant': snapshotTenant,
     'x-okapi-token': snapshotToken,
     'Content-Type': 'application/json'
-    }
-snapshot2PostHeaders={
-    'x-okapi-tenant' : snapshot2Tenant,
-    'x-okapi-token' : snapshot2Token,
-    'Content-Type' : 'application/json'
-    }
-
+}
+snapshot2PostHeaders = {
+    'x-okapi-tenant': snapshot2Tenant,
+    'x-okapi-token': snapshot2Token,
+    'Content-Type': 'application/json'
+}
 
 # ask to specify environment we are moving from and environment we are moving to
 
@@ -57,14 +56,14 @@ elif moveFrom == 'snapshot2':
     fetchHeaders = snapshot2PostHeaders
     moveFromEnv = snapshot2Environment
 else:
-    print ("unrecognized move from environment")
+    print("unrecognized move from environment")
     sys.exit()
-    
+
 moveTo = input("Which environment are we moving permission sets to? (snapshot, snapshot2) ")
 if moveFrom == moveTo:
-    print ("Can't be the same thing!")
+    print("Can't be the same thing!")
     sys.exit()
-    
+
 if moveTo == 'snapshot':
     moveToEnv = snapshotEnvironment
     postHeaders = snapshotPostHeaders
@@ -74,7 +73,7 @@ elif moveTo == 'snapshot2':
 else:
     print("Unrecognized move to environment")
     sys.exit()
-    
+
 # initialize a script start time to use in the output filename
 startTime = datetime.now()
 
@@ -85,8 +84,8 @@ friendlyResults = {}
 # adding mutable == true to the GET URL fetches only the permission sets the library created in Settings > Users > Permission Sets
 # you don't need to move the other permissions over.
 
-urlGet = '{}{}'.format(moveFromEnv, "/perms/permissions?length=10000&query=(mutable==true)") 
-urlPost = '{}{}'.format(moveToEnv, "/perms/permissions") # create variable for the POST URL
+urlGet = '{}{}'.format(moveFromEnv, "/perms/permissions?length=10000&query=(mutable==true)")
+urlPost = '{}{}'.format(moveToEnv, "/perms/permissions")  # create variable for the POST URL
 
 # fetch permission sets, change them to JSON, and then just get the actual permission records
 # from the array of JSON returned to you
@@ -94,19 +93,20 @@ responsePermSets = requests.request("GET", urlGet, headers=fetchHeaders)
 responseJson = responsePermSets.json()
 responsePermSets = responseJson['permissions']
 
-for a in responsePermSets: 
-# remove a bunch of stuff that causes errors with the POST call; I'm sure there's a better way to do this
-    del(a['metadata'])
-    del(a['grantedTo'])
-    del(a['childOf'])
-    del(a['dummy'])
-    del(a['deprecated'])
+for a in responsePermSets:
+    # remove a bunch of stuff that causes errors with the POST call; I'm sure there's a better way to do this
+    del (a['metadata'])
+    del (a['grantedTo'])
+    del (a['childOf'])
+    del (a['dummy'])
+    del (a['deprecated'])
     print("sending perm set %s " % a['displayName'])
     payload = json.dumps(a)
-    r = requests.post(urlPost, data=payload, headers=postHeaders) # try a POST for your permission
+    r = requests.post(urlPost, data=payload, headers=postHeaders)  # try a POST for your permission
     permName = a['displayName']
-    friendlyResults[permName] = r.text # save the API response in the friendlyResults file for later output
-    if any(x in r.text for x in error_phrases): # if the POST appears to have failed, try a PUT request and save the output
+    friendlyResults[permName] = r.text  # save the API response in the friendlyResults file for later output
+    if any(x in r.text for x in
+           error_phrases):  # if the POST appears to have failed, try a PUT request and save the output
         permName = a['displayName']
         print("Sending %s as PUT request" % permName)
         urlPut = '{}{}{}'.format(moveToEnv, '/perms/permissions/', a['id'])
@@ -116,4 +116,3 @@ for a in responsePermSets:
 # write API output to a text file for review
 with open("friendlyOutput-%s.txt" % startTime.strftime("%d-%m-%Y-%H%M%S"), 'a') as test_string_file:
     test_string_file.write(json.dumps(friendlyResults, indent=""))
-
