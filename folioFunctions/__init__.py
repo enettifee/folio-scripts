@@ -5,7 +5,7 @@ Functions for working with Python and FOLIO
 written by Erin Nettifee with assistance from Tod Olson and Aaron Neslin
 in sharing code and learning Python
 
-2022-07-28
+2022-08-24
 
 """
 
@@ -42,7 +42,7 @@ def askenvironment():
     else:
         print("unrecognized move from environment")
         sys.exit()
-    moveTo = input("Which environment are we moving to? (dukeDev, dukeTest, snapshot, snapshot2) ")
+    moveTo = input("Which environment are we moving to? (dukeDev, dukeTest, snapshot, snapshot2, dukeProd) ")
     if moveFrom == moveTo:
         print("Can't be the same thing!")
         sys.exit()
@@ -54,31 +54,12 @@ def askenvironment():
         moveToEnv = 'snapshot'
     elif moveTo == 'snapshot2':
         moveToEnv = 'snapshot2'
+    elif moveTo == 'dukeProd':
+        moveToEnv = 'dukeProd'
     else:
         print("Unrecognized move to environment")
         sys.exit()
     return moveFromEnv, moveToEnv
-
-"""
-Some scripts only use one server - this function is used for those.
-"""
-
-def asksingleenvironment():
-    whichServer = input("Which environment are we working on? (dukeDev, dukeTest, snapshot) ")
-    if whichServer == 'dukeDev':
-        testServer = 'dukeDev'
-    elif whichServer == 'dukeTest':
-        testServer = 'dukeTest'
-    elif whichServer == 'snapshot':
-        testServer = 'snapshot'
-    else:
-        print("unrecognized server environment")
-        sys.exit()
-    return testServer
-
-
-
-
 
 
 """
@@ -367,6 +348,7 @@ def movecircpolicies(param, param2, key, moveFromEnv, moveToEnv, fetchHeaders, p
 
 # if you need to move calendars,  you move them with the service point info, so that is defined here as
 # a separate function
+## TODO: get this to work :-)
 
 # def movecalendars(moveFromEnv, moveToEnv, fetchHeaders, postHeaders):
 #     # first, you're going to get the service points
