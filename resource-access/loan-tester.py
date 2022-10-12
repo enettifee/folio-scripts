@@ -50,7 +50,7 @@ import requests
 import csv
 import sys
 from datetime import datetime
-import folioFunctions as ff
+import ../../folioFunctions as ff
 import configparser
 import argparse
 
