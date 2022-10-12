@@ -1,12 +1,23 @@
+#! /bin/python3 
+
 ## This is a very basic tool to allow you to provide FOLIO with a CSV file of settings UUIDs 
 ## which FOLIO then sends back and tells you what circulation policies would be applied.
 ##
-## This script also includes "item status" as part of the input and output, even though
-## item status is not used in circulation rules. If you don't have access to item status
-## to include in your input file, then you might want to remove that part (see lines 163 and 210).
+## HOW TO RUN THE SCRIPT
 ##
-## It should function in FOLIO for the Lotus release and later - in Kiwi, there is a permission
-## issue that prevents the overdue and lost item policies from being retrieved.
+## The script takes two command line arguments:
+## 1. The name of the server from the config.ini file
+## 2. The name of the input file, including path if relevant.
+##
+## E.g., if the name of my server in the config file is 'snapshot' and my filename is 'faculty_loan_tester.csv' then
+## I would run this at the command line as
+##
+## ./loanTester.py snapshot faculty_loan_tester.csv
+##
+## FOLIO RELEASES: 
+## Script should work with FOLIO releases for Lotus and later.
+##
+## INPUT FILE FORMAT:
 ##
 ## Your input file should be in CSV format like so:
 ##
@@ -18,6 +29,12 @@
 ##
 ## "item_type" in this script is referring to what appears as "material type" in the UI - the API calls it
 ## item type, I think that is tech debt from very early project decisions.
+##
+## Note that the script includes item status in the input file even though item status is not referenced in 
+## circulation rules. If you don't have access to item status in your input file, you might want to remove 
+## those references. 
+##
+## USER PERMISSIONS
 ##
 ## You must run this as a user who has the following specific permissions:
 ##
@@ -35,6 +52,7 @@ import sys
 from datetime import datetime
 import folioFunctions as ff
 import configparser
+import argparse
 
 """
 Use config parser to open config-template.ini and read in
@@ -50,7 +68,15 @@ next, we call a function to ask which server we are testing on
 (this only runs on one FOLIO server)
 """
 
-whichServer = ff.asksingleenvironment()
+parser = argparse.ArgumentParser()
+parser.add_argument('servername', type=str)
+parser.add_argument('filename', type=str)
+argsServer = parser.parse_args()
+whichServer = argsServer.servername
+inputFilename = argsServer.filename
+print(inputFilename)
+
+## whichServer = ff.asksingleenvironment()
 
 """
 We know which server, so pull the relevant values from the config INI file.
@@ -123,20 +149,9 @@ then load it into a python CSV Dictionary object called "testLoanScenarios."
 The encoding = 'utf-8-sig' tells Python to compensate for Excel encoding when parsing
 the CSV.
 
-The first row the CSV file should have four header values, in this order:
-patron_type_id,	item_type_id, loan_type_id,	location_id
-
-Then you add a row for each scenario you want to test.
-
-Specify the values in the spreadsheet as excel UUIDs; the output for review will
-be in the human-readable setting name.
-
-Also note that the API calls the material type id the "item type id" - I think that is
-tech debt / architecture decisions from early FOLIO that were changed later on.
-
 """
 
-initialFile = open('loan_tester.csv', newline='', encoding='utf-8-sig')
+initialFile = open(inputFilename, newline='', encoding='utf-8-sig')
 testLoanScenarios = csv.DictReader(initialFile, dialect='excel')
 
 
@@ -160,7 +175,9 @@ for count, row in enumerate(testLoanScenarios):
     
     # first thing is to pull the row from testLoanScenarios, and assign the UUID values to
     # the associated variables.
-    patron_type_id, loan_type_id, item_type_id, location_id, item_status_name = row["patron_type_id"], row["loan_type_id"],  row["item_type_id"], row["location_id"], row["status_name"]
+    #
+    # if item status is not in your input file, you want to remove the part after row["location_id"]
+    patron_type_id, loan_type_id, item_type_id, location_id = row["patron_type_id"], row["loan_type_id"],  row["item_type_id"], row["location_id"]
 
     # then, you're going to take each value, pull the human readable name, and put
     # it back in the row in place of the UUID values.
@@ -207,7 +224,9 @@ for count, row in enumerate(testLoanScenarios):
         friendlyResults['location'] = "Location not found"
 
     # you're also going to add the item status, which is in the file already, as a friendly name.
-    friendlyResults['status_name'] = item_status_name
+    # if you're not using item status in your file, remove this line.
+    
+    # friendlyResults['status_name'] = item_status_name
 
 
     # now, you'll use the UUID values to query the APIs, get the results back, and then form
@@ -270,3 +289,4 @@ print("Script started at %s and ended at %s" % (startTime, endTime))
 
 # close the initial file of scenarios
 initialFile.close()
+
