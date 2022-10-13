@@ -31,30 +31,30 @@ config-template.ini in main.py
 """
 
 def askenvironment():
-    moveFrom = input("Which environment are we moving configs from? (dukeDev, dukeTest) ")
-    if moveFrom == 'dukeDev':
-        moveFromEnv = 'dukeDev'
-    elif moveFrom == 'dukeTest':
-        moveFromEnv = 'dukeTest'
+    movefromserver = input("Which environment are we moving configs from? (dukeDev, dukeTest) ")
+    if movefromserver == 'dukeDev':
+        movefromenv = 'dukeDev'
+    elif movefromserver == 'dukeTest':
+        movefromenv = 'dukeTest'
     else:
         print("unrecognized move from environment")
         sys.exit()
-    moveTo = input("Which environment are we moving to? (dukeDev, dukeTest, snapshot, snapshot2) ")
-    if moveFrom == moveTo:
+    movetoserver = input("Which environment are we moving to? (dukeDev, dukeTest, snapshot, snapshot2) ")
+    if movefromserver == movetoserver:
         print("Can't be the same thing!")
         sys.exit()
-    if moveTo == 'dukeDev':
-        moveToEnv = 'dukeDev'
-    elif moveTo == 'dukeTest':
-        moveToEnv = 'dukeTest'
-    elif moveTo == 'snapshot':
-        moveToEnv = 'snapshot'
-    elif moveTo == 'snapshot2':
-        moveToEnv = 'snapshot2'
+    if movetoserver == 'dukeDev':
+        movetoenv = 'dukeDev'
+    elif movetoserver == 'dukeTest':
+        movetoenv = 'dukeTest'
+    elif movetoserver == 'snapshot':
+        movetoenv = 'snapshot'
+    elif movetoserver == 'snapshot2':
+        movetoenv = 'snapshot2'
     else:
         print("Unrecognized move to environment")
         sys.exit()
-    return moveFromEnv, moveToEnv
+    return movefromenv, movetoenv
 
 """
 Some scripts only use one server - this function is used for those.
@@ -83,9 +83,10 @@ Next set of definitions - fetching settings files and returning the JSON.
 
 This could be made more generalized, but for now, the API calls
 are individually hard coded since we may want the limits to change depending on the values.
-
 """
 
+def fetchSettings(server, fetchHeaders, *args):
+    fetchSettingsUrl = f'{server}{"".join(args)}'
 
 def fetchpatrongroups(server, fetchHeaders):
     patronGroupsUrl = '{}{}'.format(server, '/groups?limit=1000')
