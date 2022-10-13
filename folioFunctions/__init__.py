@@ -18,7 +18,6 @@ response, and we can use that to trigger trying a PUT request instead.
 
 error_phrases = ["errors", "ERROR", "duplicate key"]
 
-
 """
 First function - askenvironment()
 
@@ -29,6 +28,7 @@ It returns two variables that are used to match to the appropriate section in
 config-template.ini in main.py
 
 """
+
 
 def askenvironment():
     movefromserver = input("Which environment are we moving configs from? (dukeDev, dukeTest) ")
@@ -56,26 +56,24 @@ def askenvironment():
         sys.exit()
     return movefromenv, movetoenv
 
+
 """
 Some scripts only use one server - this function is used for those.
 """
 
+
 def asksingleenvironment():
-    whichServer = input("Which environment are we working on? (dukeDev, dukeTest, snapshot) ")
-    if whichServer == 'dukeDev':
-        testServer = 'dukeDev'
-    elif whichServer == 'dukeTest':
-        testServer = 'dukeTest'
-    elif whichServer == 'snapshot':
-        testServer = 'snapshot'
+    whichsingleserver = input("Which environment are we working on? (dukeDev, dukeTest, snapshot) ")
+    if whichsingleserver == 'dukeDev':
+        workingserver = 'dukeDev'
+    elif whichsingleserver == 'dukeTest':
+        workingserver = 'dukeTest'
+    elif whichsingleserver == 'snapshot':
+        workingserver = 'snapshot'
     else:
         print("unrecognized server environment")
         sys.exit()
-    return testServer
-
-
-
-
+    return workingserver
 
 
 """
@@ -85,12 +83,17 @@ This could be made more generalized, but for now, the API calls
 are individually hard coded since we may want the limits to change depending on the values.
 """
 
-def fetchSettings(server, fetchHeaders, *args):
-    fetchSettingsUrl = f'{server}{"".join(args)}'
 
-def fetchpatrongroups(server, fetchHeaders):
+def fetchsettings(server, fetchheaders, *args):
+    fetchsettingsurl = f'{server}{"".join(args)}'
+    fetchsettingsrequest = requests.get(fetchsettingsurl, headers=fetchheaders)
+    fetchsettingsjson = fetchsettingsrequest.json()
+    return fetchsettingsjson
+
+
+def fetchpatrongroups(server, fetchheaders):
     patronGroupsUrl = '{}{}'.format(server, '/groups?limit=1000')
-    patronGroupsRequest = requests.get(patronGroupsUrl, headers=fetchHeaders)
+    patronGroupsRequest = requests.get(patronGroupsUrl, headers=fetchheaders)
     patronGroupsJson = patronGroupsRequest.json()
     return patronGroupsJson
 
