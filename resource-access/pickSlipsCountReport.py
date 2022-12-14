@@ -8,12 +8,20 @@ import configparser
 
 """
 If you wanted to run this from a command line like
+> pickSlipReport.py snapshot
 
-pickSlipReport.py snapshot
+Instead of 
+import configparser
 
-You would need to include
-
+You would add
 import argparse
+
+and these lines:
+parser = argparse.ArgumentParser()
+parser.add_argument('servername', type=str)
+argsServer = parser.parse_args()
+whichServer = argsServer.servername
+print(whichServer)
 """
 
 """
@@ -25,23 +33,16 @@ envConfig = configparser.ConfigParser()
 envConfig.read('config-template.ini')
 
 """
-If you wanted to use the command line, you would use this:
-
-parser = argparse.ArgumentParser()
-parser.add_argument('servername', type=str)
-argsServer = parser.parse_args()
-whichServer = argsServer.servername
-print(whichServer)
-"""
-
-"""
 Ask for the environment name
 """
-
 whichServer = input("What server are we querying for pickslips? ")
 
 """
-Now that we know which server, pull the relevant info for the request call.
+We assume that the provided servername corresponds to the name listed
+in config-template.ini.
+
+Once we know the right server, we pull the relevant info from config-template.ini
+and use it to construct the variables for the API call.
 """
 
 okapiServer = envConfig[whichServer]['okapi_url']
@@ -57,7 +58,7 @@ postHeaders = {
 }
 
 """
-First, let's query for the service points on the server.
+Next, let's query for the service points on the server.
 We grab the UUIDs and name and save them in a list.
 """
 
@@ -74,7 +75,13 @@ for a in servicePointsJson["servicepoints"]:
     servicePointsInfo.append(servicePoint)
 
 """
-Next, let's call for the pick slips for each servicepoint.
+Finally, for each service point, we:
+1. Call for the pick slips associated to that service point;
+2. Save the pick slips response as JSON;
+3. Construct a python dictionary of the service point UUID, service point name, and the number of slips;
+4. Save the dictionary to a Python list object 'pickSlipsCombinedList'.
+
+Then we print the list to the screen.
 """
 
 pickSlipsCombinedList = []
