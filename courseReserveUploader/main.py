@@ -11,8 +11,15 @@ import foliofunctions as ff
 import configparser
 import csv
 
-# read in configuration files for configparser
+# basic function to ask for environment you are uploading to
+def singleenvironment(configNames):
+    environmentname = input("Which environment are we uploading reserves to? ")
+    if environmentname in configNames:
+        return environmentname
+    else:
+        sys.exit("can't recognize environment name!")
 
+# read in configuration files for configparser
 envConfig = configparser.ConfigParser()
 envConfig.read('config-template.ini')
 print(envConfig.sections())
