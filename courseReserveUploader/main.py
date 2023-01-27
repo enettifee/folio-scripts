@@ -7,7 +7,6 @@ Created on Fri Nov 19 11:17:51 2021
 
 import json
 import requests
-import foliofunctions as ff
 import configparser
 import csv
 
