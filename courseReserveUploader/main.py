@@ -62,6 +62,9 @@ There is no bulk upload API for course reserves, so the structure here is basica
 4) iterate through the list of barcodes to construct the payload
 5) send the API call to FOLIO
 
+Note that the course listing UUID is not what appears in the URL when you view the course - it is stored in the underlying JSON of the course record,
+which can be viewed through Chrome developer tools.
+
 """
 
 # use the 'format' command to build the upload URL
