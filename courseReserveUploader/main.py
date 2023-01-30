@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Nov 19 11:17:51 2021
+Basic course reserve updater that can take a CSV list of barcodes and upload them to a course all at once.
 
-@author: en25
+Written January 2023.
 """
 
 import json
