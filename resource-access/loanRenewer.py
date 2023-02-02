@@ -1,21 +1,22 @@
 """
-A basic script to renew loans. Uses configparser to handle authentication.
-Retrieves all loans from a FOLIO environment and attempts to renew all of them at once.
-Screen will output
-1: Error message if there was an HTTP error, which can happen when the renewal tries to talk to the calendar
-2: Error message from the JSON if the attempt to renew failed through the normal circulation checks;
-3: A message "Item was renewed" if the reenewal was successful.
+A basic script to renew loans. Developed and tested on Nolana.
+Attempts to retrieve a defined number of open loans - hardcoded to 1,000 - and
+then renew them. 
 
-This is a very early version of what a better version of this could look like, but I'm putting it here
-anyway in case it's useful.
+Outputs a CSV file in the script directory with
+user barcode, title, item barcode, response message
 
--enettifee 1-31-2023
+This is continuing iteration - goal is to get to a script that can take input to get a list of loans
+and then renew that list.
+
+@enettifee Jan 2023 - Feb 2023.
+
 """
 
 import json
 import requests
 import configparser
-
+import csv
 
 # read in configuration files
 
@@ -37,7 +38,7 @@ make some urls
 
 renew-by-id requires itemId and userId
 """
-fetchLoansUrl = '{}{}'.format(fetchserver, '/circulation/loans?limit=100000&query=(status.name = "Open")')
+fetchLoansUrl = '{}{}'.format(fetchserver, '/circulation/loans?limit=1000&query=(status.name = "Open")')
 renewUrl = '{}{}'.format(fetchserver, '/circulation/renew-by-id')
 
 """
@@ -46,19 +47,35 @@ First, fetch the list of existing loans.
 
 loanRequests = requests.get(fetchLoansUrl, headers=headers)
 loans = loanRequests.json()
+loansDictionary = loans['loans']
+renewResponses = {}
 
-for count, each in enumerate(loans['loans'], start=1):
+for count, each in enumerate(loansDictionary, start=1):
+    print(each['item']['title'])
     renewDictionary = {}
     renewDictionary['userId'] = each['userId']
     renewDictionary['itemId'] = each['itemId']
     renewLoanBody = json.dumps(renewDictionary)
-    print(f"Attempting renew {count} item id {each['itemId']}")
+    print(f"Attempting renew {count} item title {each['item']['title']}")
     renewLoan = requests.post(renewUrl, data=renewLoanBody, headers=headers)
+    renewLoanJson = renewLoan.json()
     if "failed" in renewLoan.text:
-        print(renewLoan.text)
+        renewFailed = []
+        renewFailed.extend([each['borrower']['barcode'],each['item']['title'], each['item']['barcode'], "500 server side error"])
+        renewResponses[count] = renewFailed
     elif "renewed" in renewLoan.text:
-        print("item was renewed")
+        renewSucceeded = []
+        renewSucceeded.extend([each['borrower']['barcode'],each['item']['title'], each['item']['barcode'], "Item was renewed"])
+        renewResponses[count] = renewSucceeded
     else:
-        renewLoanJson = renewLoan.json()
-        errorMessage = renewLoanJson['errors'][0]
-        print(errorMessage['message'])
+        renewFailedErrors = []
+        renewFailedErrors.extend([each['borrower']['barcode'],each['item']['title'], each['item']['barcode'], renewLoanJson['errors'][0]['message']])
+        renewResponses[count] = renewFailedErrors
+
+output_file = "renewal_report.csv"
+
+with open(output_file, 'w', encoding='utf-8', newline='') as csvfile:
+    writer = csv.writer(csvfile)
+    writer.writerow(['User barcode', 'Title', 'Barcode', 'Message'])
+    for each in renewResponses:
+        writer.writerow(renewResponses[each])
