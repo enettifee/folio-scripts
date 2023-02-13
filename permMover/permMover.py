@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 ## 
 ## this is a simple script that lets you move library-created permission sets
 ## from one environment to another
