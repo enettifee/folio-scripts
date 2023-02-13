@@ -70,8 +70,7 @@ for a in responsePermSets:
     r = requests.post(urlPost, data=payload, headers=postHeaders)  # try a POST for your permission
     permName = a['displayName']
     friendlyResults[permName] = r.text  # save the API response in the friendlyResults file for later output
-    if any(x in r.text for x in
-           error_phrases):  # if the POST appears to have failed, try a PUT request and save the output
+    if any(x in r.text for x in error_phrases):  # if the POST appears to have failed, try a PUT request and save the output
         permName = a['displayName']
         print("Sending %s as PUT request" % permName)
         urlPut = '{}{}{}'.format(moveToEnv, '/perms/permissions/', a['id'])
