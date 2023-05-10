@@ -1,7 +1,8 @@
 #! /bin/python3 
 
 ## This is a very basic tool to allow you to provide FOLIO with a CSV file of settings UUIDs 
-## which FOLIO then sends back and tells you what circulation policies would be applied.
+## which FOLIO then sends back and tells you what circulation policies would be applied. This lets you
+## test your rules without having to actually create loans.
 ##
 ## HOW TO RUN THE SCRIPT
 ##
@@ -15,7 +16,15 @@
 ## ./loanTester.py snapshot faculty_loan_tester.csv
 ##
 ## FOLIO RELEASES: 
-## Script should work with FOLIO releases for Lotus and later.
+## Script should work with FOLIO releases for Lotus and later. It has been tested on Lotus and Morning Glory. 
+## 
+## HOW LONG IT TAKES TO RUN:
+##
+## FOLIO does not have bulk loan test APIs. The timing of the script depends on how many possible
+## rule combinations you are testing. At Duke, we have over 100,000 possible combinations of patron group, 
+## loan type, material type, and location. With that number, the script took anywhere from 15-18 hours to run. So you definitely
+## want to set this up on a machine where you can start it running and then come back to it after it has had time
+## to complete.
 ##
 ## INPUT FILE FORMAT:
 ##
