@@ -1,59 +1,63 @@
 #! /bin/python3 
 
-## This is a very basic tool to allow you to provide FOLIO with a CSV file of settings UUIDs 
-## which FOLIO then sends back and tells you what circulation policies would be applied. This lets you
-## test your rules without having to actually create loans.
-##
-## HOW TO RUN THE SCRIPT
-##
-## The script takes two command line arguments:
-## 1. The name of the server from the config.ini file
-## 2. The name of the input file, including path if relevant.
-##
-## E.g., if the name of my server in the config file is 'snapshot' and my filename is 'faculty_loan_tester.csv' then
-## I would run this at the command line as
-##
-## ./loanTester.py snapshot faculty_loan_tester.csv
-##
-## FOLIO RELEASES: 
-## Script should work with FOLIO releases for Lotus and later. It has been tested on Lotus and Morning Glory. 
-## 
-## HOW LONG IT TAKES TO RUN:
-##
-## FOLIO does not have bulk loan test APIs. The timing of the script depends on how many possible
-## rule combinations you are testing. At Duke, we have over 100,000 possible combinations of patron group, 
-## loan type, material type, and location. With that number, the script took anywhere from 15-18 hours to run. So you definitely
-## want to set this up on a machine where you can start it running and then come back to it after it has had time
-## to complete.
-##
-## INPUT FILE FORMAT:
-##
-## Your input file should be in CSV format like so:
-##
-## patron_type_id,loan_type_id,item_type_id,location_id, status_name
-## patrontypeUUID,loantypeUUID,itemtypeUUID,locationUUID, item status
-## ...
-## ...
-## ...
-##
-## "item_type" in this script is referring to what appears as "material type" in the UI - the API calls it
-## item type, I think that is tech debt from very early project decisions.
-##
-## Note that the script includes item status in the input file even though item status is not referenced in 
-## circulation rules. If you don't have access to item status in your input file, you might want to remove 
-## those references. 
-##
-## USER PERMISSIONS
-##
-## You must run this as a user who has the following specific permissions:
-##
-## circulation.rules.loan-policy.get
-## circulation.rules.overdue-fine-policy.get
-## circulation.rules.lost-item-policy.get
-## circulation.rules.request-policy.get
-## circulation.rules.notice-policy.get
-##
-## These permissions are hidden by default, so you will need administrator access to assign these permissions to a user.
+"""
+This is a very basic tool to allow you to provide FOLIO with a CSV file of settings UUIDs 
+which FOLIO then sends back and tells you what circulation policies would be applied. This lets you
+test your rules without having to actually create loans.
+
+To run the script, you need this script, the config-template.ini file for authentication, and the folioFunctions library off of the
+parent directory.
+
+1. FOLIO RELEASES 
+Script should work with FOLIO releases for Lotus and later. It has been tested on Lotus and Morning Glory. 
+
+2. HOW LONG IT TAKES TO RUN
+
+FOLIO does not have bulk loan test APIs. The timing of the script depends on how many possible
+rule combinations you are testing. At Duke, we have over 100,000 possible combinations of patron group, 
+loan type, material type, and location. With that number, the script took anywhere from 15-18 hours to run. So you definitely
+want to set this up on a machine where you can start it running and then come back to it after it has had time
+to complete.
+
+3. INPUT FILE FORMAT
+
+Your input file should be in CSV format like this - the order of the IDs matters.
+
+patron_type_id,loan_type_id,item_type_id,location_id, status_name
+patrontypeUUID,loantypeUUID,itemtypeUUID,locationUUID, item status
+...
+...
+...
+
+"item_type" in this script is referring to "material type" in the UI - the API calls it item type, I think that is tech debt from very early project decisions.
+
+Note that the script includes item status in the input file even though item status is not referenced in 
+circulation rules. If you don't have access to item status in your input file, you might want to remove 
+those references in the code.
+
+4. USER PERMISSIONS
+You must run this as a user who has the following specific permissions:
+
+circulation.rules.loan-policy.get
+circulation.rules.overdue-fine-policy.get
+circulation.rules.lost-item-policy.get
+circulation.rules.request-policy.get
+circulation.rules.notice-policy.get
+
+These permissions are hidden by default, so you will need administrator access to assign these permissions to a user.
+
+5. HOW TO RUN THE SCRIPT
+
+The script takes two command line arguments:
+1. The name of the server from the config.ini file
+2. The name of the input file, including path if relevant.
+
+E.g., if the name of my server in the config file is 'snapshot' and my filename is 'faculty_loan_tester.csv' then
+I would run this at the command line as
+
+./loanTester.py snapshot faculty_loan_tester.csv
+"""
+
 
 import requests
 import csv
@@ -157,7 +161,6 @@ then load it into a python CSV Dictionary object called "testLoanScenarios."
 
 The encoding = 'utf-8-sig' tells Python to compensate for Excel encoding when parsing
 the CSV.
-
 """
 
 initialFile = open(inputFilename, newline='', encoding='utf-8-sig')
